@@ -1,0 +1,12 @@
+[plugins]
+php = "https://github.com/verzly/mise-php"
+
+[tools]
+php = "8.5.5"
+
+[env]
+APP_ENV = "local"
+
+[tasks.serve]
+description = "Start the PHP development server"
+run = "php -S localhost:8000 -t public"
