@@ -88,7 +88,3 @@ mise run test
 ## Documentacion API
 
 Ver [docs/API.md](docs/API.md).
-
-## Nota de esquema para el XLSX
-
-El esquema usa `users.role` para los roles fijos `admin`, `company` y `client`, en lugar de una tabla `roles`. Tambien incluye desde el inicio las tablas futuras de ofertas, compras, facturas, codigos de cupon y simulaciones de pago, aunque sus endpoints quedan para fases posteriores.

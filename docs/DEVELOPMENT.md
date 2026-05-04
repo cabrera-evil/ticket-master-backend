@@ -138,7 +138,3 @@ docker compose logs -f app
 docker compose logs -f db
 docker compose logs -f mailpit
 ```
-
-## Schema Note
-
-The schema uses `users.role` for the fixed roles `admin`, `company`, and `client` instead of a separate `roles` table. The migrations already include the future tables for offers, purchases, invoices, coupon codes, and payment simulations, but the current implemented endpoints are only the Fase 1 auth/admin flows.
