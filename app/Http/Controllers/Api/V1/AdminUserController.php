@@ -17,9 +17,6 @@ class AdminUserController extends Controller
     {
         $admin = $this->registrationService->createAdmin($request->validated());
 
-        return response()->json([
-            'message' => 'Administrador registrado correctamente.',
-            'data' => new UserResource($admin),
-        ], Response::HTTP_CREATED);
+        return $this->apiResponse('Administrador registrado correctamente.', new UserResource($admin), Response::HTTP_CREATED);
     }
 }

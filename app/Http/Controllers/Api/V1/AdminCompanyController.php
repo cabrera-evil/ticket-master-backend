@@ -23,10 +23,11 @@ class AdminCompanyController extends Controller
             ->latest()
             ->paginate(15);
 
-        return response()->json([
-            'message' => 'Empresas pendientes obtenidas correctamente.',
-            'data' => CompanyResource::collection($companies),
-        ]);
+        return $this->paginatedResponse(
+            'Empresas pendientes obtenidas correctamente.',
+            $companies,
+            CompanyResource::collection($companies)
+        );
     }
 
     public function approve(ApproveCompanyRequest $request, Company $company): JsonResponse
@@ -39,10 +40,7 @@ class AdminCompanyController extends Controller
             (float) $validated['commission_percentage']
         );
 
-        return response()->json([
-            'message' => 'Empresa aprobada correctamente.',
-            'data' => new CompanyResource($company),
-        ]);
+        return $this->apiResponse('Empresa aprobada correctamente.', new CompanyResource($company));
     }
 
     public function reject(RejectCompanyRequest $request, Company $company): JsonResponse
@@ -55,9 +53,6 @@ class AdminCompanyController extends Controller
             $validated['reason'] ?? null
         );
 
-        return response()->json([
-            'message' => 'Empresa rechazada correctamente.',
-            'data' => new CompanyResource($company),
-        ]);
+        return $this->apiResponse('Empresa rechazada correctamente.', new CompanyResource($company));
     }
 }

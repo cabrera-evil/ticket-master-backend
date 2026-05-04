@@ -28,20 +28,14 @@ class AuthController extends Controller
     {
         $user = $this->registrationService->registerClient($request->validated());
 
-        return response()->json([
-            'message' => 'Cliente registrado correctamente.',
-            'data' => new UserResource($user),
-        ], Response::HTTP_CREATED);
+        return $this->apiResponse('Cliente registrado correctamente.', new UserResource($user), Response::HTTP_CREATED);
     }
 
     public function registerCompany(RegisterCompanyRequest $request): JsonResponse
     {
         $user = $this->registrationService->registerCompany($request->validated());
 
-        return response()->json([
-            'message' => 'Empresa registrada correctamente. Queda pendiente de aprobacion.',
-            'data' => new UserResource($user),
-        ], Response::HTTP_CREATED);
+        return $this->apiResponse('Empresa registrada correctamente. Queda pendiente de aprobacion.', new UserResource($user), Response::HTTP_CREATED);
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -59,33 +53,24 @@ class AuthController extends Controller
         }
 
         if ($user->status !== UserStatus::Active) {
-            return response()->json([
-                'message' => 'La cuenta no esta activa.',
-            ], Response::HTTP_FORBIDDEN);
+            return $this->apiResponse('La cuenta no esta activa.', statusCode: Response::HTTP_FORBIDDEN);
         }
 
-        return response()->json([
-            'message' => 'Inicio de sesion correcto.',
-            'data' => [
-                'user' => new UserResource($user->loadMissing(['role', 'client', 'company'])),
-            ],
+        return $this->apiResponse('Inicio de sesion correcto.', [
+            'user' => new UserResource($user->loadMissing(['role', 'client', 'company'])),
         ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        return response()->json([
-            'message' => 'Sesion cerrada correctamente.',
-        ]);
+        return $this->apiResponse('Sesion cerrada correctamente.');
     }
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
         Password::sendResetLink($request->only('email'));
 
-        return response()->json([
-            'message' => 'Si el correo existe, se enviaran instrucciones para restablecer la contrasena.',
-        ], Response::HTTP_ACCEPTED);
+        return $this->apiResponse('Si el correo existe, se enviaran instrucciones para restablecer la contrasena.', statusCode: Response::HTTP_ACCEPTED);
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
@@ -105,8 +90,6 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json([
-            'message' => 'Contrasena actualizada correctamente.',
-        ]);
+        return $this->apiResponse('Contrasena actualizada correctamente.');
     }
 }
