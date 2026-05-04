@@ -6,7 +6,7 @@ API backend en Laravel para la Fase 1 del proyecto "La Cuponera SV".
 
 - PHP 8.5 con mise
 - Laravel 13
-- Laravel Sanctum
+- JWT con cookies HttpOnly (`firebase/php-jwt`)
 - PostgreSQL
 - SMTP local con Mailpit
 - Docker Compose
@@ -14,6 +14,8 @@ API backend en Laravel para la Fase 1 del proyecto "La Cuponera SV".
 ## Funcionalidad Fase 1
 
 - Login universal para administradores, empresas y clientes.
+- Autenticacion con JWT en cookies HttpOnly (`jwt` + `refreshToken`).
+- Renovacion automatica de tokens proximos a vencer sin intervencion del cliente.
 - Registro de clientes.
 - Registro de empresas en estado pendiente.
 - Registro de nuevos administradores por un administrador.

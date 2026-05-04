@@ -12,12 +12,14 @@ Route::prefix('v1')->group(function (): void {
         ->middleware('throttle:registration');
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:login');
+    Route::post('/refresh-token', [AuthController::class, 'refreshToken'])
+        ->middleware('throttle:refresh');
     Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])
         ->middleware('throttle:password-reset');
     Route::post('/password/reset', [AuthController::class, 'resetPassword'])
         ->middleware('throttle:password-reset');
 
-    Route::middleware('auth:sanctum')->group(function (): void {
+    Route::middleware('auth:jwt')->group(function (): void {
         Route::post('/logout', [AuthController::class, 'logout']);
 
         Route::middleware('role:admin')->prefix('admin')->group(function (): void {

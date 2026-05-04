@@ -12,6 +12,8 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthRegistrationService;
+use App\Services\JwtService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,20 +24,41 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthRegistrationService $registrationService) {}
+    public function __construct(
+        private readonly AuthRegistrationService $registrationService,
+        private readonly JwtService $jwtService,
+    ) {}
 
     public function registerClient(RegisterClientRequest $request): JsonResponse
     {
         $user = $this->registrationService->registerClient($request->validated());
+        $tokens = $this->jwtService->generateTokenPair($user->id);
 
-        return $this->apiResponse('Cliente registrado correctamente.', new UserResource($user), Response::HTTP_CREATED);
+        $response = $this->apiResponse(
+            'Cliente registrado correctamente.',
+            array_merge($tokens, ['user' => new UserResource($user)]),
+            Response::HTTP_CREATED
+        );
+
+        $this->jwtService->attachCookies($tokens, $response);
+
+        return $response;
     }
 
     public function registerCompany(RegisterCompanyRequest $request): JsonResponse
     {
         $user = $this->registrationService->registerCompany($request->validated());
+        $tokens = $this->jwtService->generateTokenPair($user->id);
 
-        return $this->apiResponse('Empresa registrada correctamente. Queda pendiente de aprobacion.', new UserResource($user), Response::HTTP_CREATED);
+        $response = $this->apiResponse(
+            'Empresa registrada correctamente. Queda pendiente de aprobacion.',
+            array_merge($tokens, ['user' => new UserResource($user)]),
+            Response::HTTP_CREATED
+        );
+
+        $this->jwtService->attachCookies($tokens, $response);
+
+        return $response;
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -56,14 +79,47 @@ class AuthController extends Controller
             return $this->apiResponse('La cuenta no esta activa.', statusCode: Response::HTTP_FORBIDDEN);
         }
 
-        return $this->apiResponse('Inicio de sesion correcto.', [
+        $tokens = $this->jwtService->generateTokenPair($user->id);
+
+        $response = $this->apiResponse('Inicio de sesion correcto.', array_merge($tokens, [
             'user' => new UserResource($user->loadMissing(['role', 'client', 'company'])),
-        ]);
+        ]));
+
+        $this->jwtService->attachCookies($tokens, $response);
+
+        return $response;
+    }
+
+    public function refreshToken(Request $request): JsonResponse
+    {
+        $refreshToken = $request->cookie(config('jwt.refresh_cookie_name'));
+
+        if (! $refreshToken) {
+            throw new AuthenticationException('NO_REFRESH_TOKEN');
+        }
+
+        try {
+            $payload = $this->jwtService->verifyRefreshToken($refreshToken);
+        } catch (\Throwable) {
+            $response = $this->apiResponse('INVALID_REFRESH_TOKEN', statusCode: Response::HTTP_UNAUTHORIZED);
+            $this->jwtService->invalidateAuthCookies($response);
+
+            return $response;
+        }
+
+        $tokens = $this->jwtService->generateTokenPair($payload->sub);
+        $response = $this->apiResponse('Tokens actualizados correctamente.', $tokens);
+        $this->jwtService->attachCookies($tokens, $response);
+
+        return $response;
     }
 
     public function logout(Request $request): JsonResponse
     {
-        return $this->apiResponse('Sesion cerrada correctamente.');
+        $response = $this->apiResponse('Sesion cerrada correctamente.');
+        $this->jwtService->invalidateAuthCookies($response);
+
+        return $response;
     }
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse

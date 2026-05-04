@@ -2,7 +2,27 @@
 
 Base URL local: `http://localhost:8080/api/v1`
 
-Todas las respuestas son JSON. Los endpoints protegidos usan `Authorization: Bearer {token}`.
+Todas las respuestas son JSON.
+
+## Autenticacion
+
+La API usa JWT en cookies HttpOnly. Al iniciar sesion o registrarse se establecen dos cookies:
+
+| Cookie | Contenido | Duracion |
+|---|---|---|
+| `jwt` | Access token | 15 minutos |
+| `refreshToken` | Refresh token | 7 dias |
+
+Los endpoints protegidos leen el access token de la cookie `jwt`. Como alternativa, tambien se acepta el header `Authorization: Bearer {token}`.
+
+El middleware renueva el access token automaticamente cuando queda menos de 5 minutos de vigencia, o cuando el cliente recibe un 401 con refresh token valido. En ese caso la respuesta incluye los headers:
+
+```
+X-Token-Refreshed: true
+X-New-Access-Token: <nuevo_access_token>
+```
+
+---
 
 ## Formato de respuesta
 
@@ -40,7 +60,7 @@ Los endpoints paginados incluyen ademas un campo `pagination`:
 
 ### `POST /register/client`
 
-Registra un cliente.
+Registra un cliente. Establece cookies de autenticacion.
 
 Campos: `username`, `email`, `password`, `password_confirmation`, `first_name`, `last_name`, `dui`, `birth_date`.
 
@@ -51,10 +71,14 @@ Campos: `username`, `email`, `password`, `password_confirmation`, `first_name`, 
   "statusCode": 201,
   "message": "Cliente registrado correctamente.",
   "data": {
-    "id": 1,
-    "username": "jdoe",
-    "email": "jdoe@example.com",
-    "role": "client"
+    "jwt": "<access_token>",
+    "refreshToken": "<refresh_token>",
+    "user": {
+      "id": 1,
+      "username": "jdoe",
+      "email": "jdoe@example.com",
+      "role": "client"
+    }
   }
 }
 ```
@@ -63,7 +87,7 @@ Campos: `username`, `email`, `password`, `password_confirmation`, `first_name`, 
 
 ### `POST /register/company`
 
-Registra una empresa en estado `pending`.
+Registra una empresa en estado `pending`. Establece cookies de autenticacion.
 
 Campos: `username`, `email`, `password`, `password_confirmation`, `name`, `nit`, `address`, `phone`.
 
@@ -74,10 +98,14 @@ Campos: `username`, `email`, `password`, `password_confirmation`, `name`, `nit`,
   "statusCode": 201,
   "message": "Empresa registrada correctamente. Queda pendiente de aprobacion.",
   "data": {
-    "id": 2,
-    "username": "mi_empresa",
-    "email": "contacto@empresa.com",
-    "role": "company"
+    "jwt": "<access_token>",
+    "refreshToken": "<refresh_token>",
+    "user": {
+      "id": 2,
+      "username": "mi_empresa",
+      "email": "contacto@empresa.com",
+      "role": "company"
+    }
   }
 }
 ```
@@ -86,13 +114,12 @@ Campos: `username`, `email`, `password`, `password_confirmation`, `name`, `nit`,
 
 ### `POST /login`
 
-Inicia sesion por `email` o `username`.
+Inicia sesion por `email` o `username`. Establece cookies de autenticacion.
 
 ```json
 {
   "login": "admin",
-  "password": "Password123",
-  "device_name": "postman"
+  "password": "Password123"
 }
 ```
 
@@ -103,10 +130,12 @@ Inicia sesion por `email` o `username`.
   "statusCode": 200,
   "message": "Inicio de sesion correcto.",
   "data": {
+    "jwt": "<access_token>",
+    "refreshToken": "<refresh_token>",
     "user": {
       "id": 1,
       "username": "admin",
-      "email": "admin@lacuponera.test",
+      "email": "info@cabrera-dev.com",
       "role": "admin"
     }
   }
@@ -124,9 +153,37 @@ Inicia sesion por `email` o `username`.
 
 ---
 
+### `POST /refresh-token`
+
+Emite un nuevo par de tokens usando el `refreshToken` de la cookie. No requiere access token valido.
+
+**Respuesta** `200`:
+
+```json
+{
+  "statusCode": 200,
+  "message": "Tokens actualizados correctamente.",
+  "data": {
+    "jwt": "<nuevo_access_token>",
+    "refreshToken": "<nuevo_refresh_token>"
+  }
+}
+```
+
+**Refresh token invalido o expirado** `401`:
+
+```json
+{
+  "statusCode": 401,
+  "message": "INVALID_REFRESH_TOKEN"
+}
+```
+
+---
+
 ### `POST /logout`
 
-Revoca el token actual. Requiere autenticacion.
+Cierra la sesion. Invalida las cookies de autenticacion. Requiere autenticacion.
 
 **Respuesta** `200`:
 
@@ -175,7 +232,7 @@ Campos: `email`, `password`, `password_confirmation`, `token`.
 
 ## Admin
 
-Todos requieren token de administrador.
+Todos requieren autenticacion de administrador.
 
 ### `POST /admin/users`
 
@@ -300,5 +357,13 @@ Los errores de autorizacion:
 ```json
 {
   "message": "No tiene permiso para realizar esta accion."
+}
+```
+
+Sin autenticacion o token expirado sin refresh token valido:
+
+```json
+{
+  "message": "Unauthenticated."
 }
 ```

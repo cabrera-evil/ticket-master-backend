@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureCompanyIsApproved;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\TokenRefreshMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
             'company.approved' => EnsureCompanyIsApproved::class,
         ]);
+
+        $middleware->appendToGroup('api', TokenRefreshMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
