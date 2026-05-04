@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lacuponera_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www/html
+      - composer_vendor:/var/www/html/vendor
+    depends_on:
+      - db
+      - mailpit
+    networks:
+      - lacuponera
+
+  db:
+    image: postgres:16-alpine
+    container_name: lacuponera_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-lacuponera}
+      POSTGRES_USER: ${DB_USERNAME:-lacuponera}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lacuponera
+
+  mailpit:
+    image: axllent/mailpit:v1.22
+    container_name: lacuponera_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    networks:
+      - lacuponera
+
+networks:
+  lacuponera:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  composer_vendor:

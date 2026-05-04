@@ -3,10 +3,63 @@ php = "https://github.com/verzly/mise-php"
 
 [tools]
 php = "8.5.5"
+composer = "latest"
 
 [env]
 APP_ENV = "local"
 
-[tasks.serve]
-description = "Start the PHP development server"
-run = "php -S localhost:8000 -t public"
+[tasks.install]
+description = "Install PHP dependencies"
+run = "composer install"
+
+[tasks."docker:up"]
+description = "Start Docker services"
+run = "docker compose up -d --build"
+
+[tasks."docker:down"]
+description = "Stop Docker services"
+run = "docker compose down"
+
+[tasks."docker:serve"]
+description = "Start the Docker development stack"
+run = "docker compose up -d --build"
+
+[tasks."docker:test"]
+description = "Run the Laravel test suite against PostgreSQL in Docker"
+run = "docker compose exec app php artisan test"
+
+[tasks."docker:migrate"]
+description = "Run PostgreSQL database migrations and seeders in Docker"
+run = "docker compose exec app php artisan migrate --seed"
+
+[tasks."docker:fresh"]
+description = "Rebuild the PostgreSQL database from migrations and seeders in Docker"
+run = "docker compose exec app php artisan migrate:fresh --seed"
+
+[tasks."docker:artisan"]
+description = "Run Artisan commands in Docker"
+run = "docker compose exec app php artisan"
+
+[tasks."local:serve"]
+description = "Start Laravel dev server locally (no Docker)"
+run = "php artisan serve --host=0.0.0.0 --port=8080"
+
+[tasks."local:migrate"]
+description = "Run migrations and seed locally (no Docker)"
+run = "php artisan migrate --seed"
+
+[tasks."local:fresh"]
+description = "Fresh migration with seed locally (no Docker)"
+run = "php artisan migrate:fresh --seed"
+
+[tasks."local:rollback"]
+description = "Rollback last migration batch locally (no Docker)"
+run = "php artisan migrate:rollback"
+
+[tasks."local:test"]
+description = "Run test suite locally (no Docker)"
+run = "php artisan test"
+
+[tasks."local:artisan"]
+description = "Run any Artisan command locally (no Docker)"
+run = "php artisan"
