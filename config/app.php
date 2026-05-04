@@ -56,6 +56,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Docs Access
+    |--------------------------------------------------------------------------
+    |
+    | Controls access to Scramble API docs endpoints (/api/docs, /api/docs.json)
+    | through the `viewApiDocs` gate.
+    |
+    */
+    'api_docs_public' => (bool) env('API_DOCS_PUBLIC', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

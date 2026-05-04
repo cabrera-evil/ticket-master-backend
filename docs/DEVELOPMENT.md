@@ -57,6 +57,13 @@ API:     http://localhost:8080/api/v1
 Mailpit: http://localhost:8025
 ```
 
+API docs (Scramble/OpenAPI):
+
+```text
+UI:       http://localhost:8080/api/docs
+OpenAPI:  http://localhost:8080/api/docs.json
+```
+
 ## First-Time Laravel Setup
 
 Run the key generation once:
@@ -137,4 +144,17 @@ Read logs:
 docker compose logs -f app
 docker compose logs -f db
 docker compose logs -f mailpit
+```
+
+## API Documentation Integration
+
+This project uses Scramble to generate OpenAPI 3.1 docs from code (routes, `FormRequest`, resources).
+
+- Documentation UI route: `/api/docs`
+- OpenAPI JSON route: `/api/docs.json`
+
+Export JSON to a file:
+
+```bash
+DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan scramble:export --path=docs/openapi.json
 ```

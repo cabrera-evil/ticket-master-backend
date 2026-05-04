@@ -89,4 +89,15 @@ mise run test
 
 ## Documentacion API
 
-Ver [docs/API.md](docs/API.md).
+La documentacion se genera automaticamente con Scramble (OpenAPI 3.1):
+
+- UI interactiva: `http://localhost:8080/api/docs`
+- OpenAPI JSON: `http://localhost:8080/api/docs.json`
+
+Export manual del contrato a archivo:
+
+```bash
+DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan scramble:export --path=docs/openapi.json
+```
+
+Referencia rapida: [docs/API.md](docs/API.md).
