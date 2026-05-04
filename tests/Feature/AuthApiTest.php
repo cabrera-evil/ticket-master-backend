@@ -2,86 +2,61 @@
 
 namespace Tests\Feature;
 
-use App\Enums\CompanyStatus;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Password;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_client_can_register_and_login(): void
+    public function test_user_can_register_and_login_with_portfolio_contract(): void
     {
         $payload = [
             'username' => 'cliente1',
+            'firstName' => 'Ana',
+            'lastName' => 'Perez',
             'email' => 'cliente1@example.com',
-            'password' => 'Password123',
-            'password_confirmation' => 'Password123',
-            'first_name' => 'Ana',
-            'last_name' => 'Perez',
-            'dui' => '12345678-9',
-            'birth_date' => now()->subYears(20)->toDateString(),
+            'password' => 'Password123!',
         ];
 
-        $this->postJson('/api/v1/register/client', $payload)
+        $this->postJson('/api/v1/auth/register', $payload)
             ->assertCreated()
-            ->assertJsonPath('data.role', UserRole::Client->value)
-            ->assertJsonPath('data.client.dui', '12345678-9');
+            ->assertJsonStructure(['data' => ['jwt', 'refreshToken', 'user']])
+            ->assertJsonPath('data.user.username', 'cliente1');
 
-        $this->postJson('/api/v1/login', [
-            'login' => 'cliente1',
-            'password' => 'Password123',
+        $this->postJson('/api/v1/auth/login', [
+            'identifier' => 'cliente1',
+            'password' => 'Password123!',
         ])
             ->assertOk()
-            ->assertJsonPath('data.token_type', 'Bearer')
-            ->assertJsonPath('data.user.role', UserRole::Client->value);
+            ->assertJsonStructure(['data' => ['jwt', 'refreshToken', 'user']])
+            ->assertJsonPath('data.user.username', 'cliente1');
     }
 
-    public function test_client_registration_validates_age_and_unique_fields(): void
+    public function test_register_validates_required_fields_and_uniqueness(): void
     {
-        User::factory()->create([
+        $roleId = Role::query()->where('name', 'client')->value('id');
+        User::query()->create([
+            'name' => 'Duplicado Usuario',
             'username' => 'duplicado',
             'email' => 'duplicado@example.com',
-        ])->client()->create([
-            'first_name' => 'Nombre',
-            'last_name' => 'Apellido',
-            'dui' => '00000000-0',
-            'birth_date' => now()->subYears(25)->toDateString(),
+            'password' => 'Password123!',
+            'role_id' => $roleId,
+            'status' => 'active',
         ]);
 
-        $this->postJson('/api/v1/register/client', [
+        $this->postJson('/api/v1/auth/register', [
             'username' => 'duplicado',
+            'firstName' => 'Test',
+            'lastName' => 'User',
             'email' => 'duplicado@example.com',
-            'password' => 'Password123',
-            'password_confirmation' => 'Password123',
-            'first_name' => 'Menor',
-            'last_name' => 'Edad',
-            'dui' => '00000000-0',
-            'birth_date' => now()->subYears(17)->toDateString(),
+            'password' => 'Password123!',
         ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['username', 'email', 'dui', 'birth_date']);
-    }
-
-    public function test_company_registers_as_pending(): void
-    {
-        $this->postJson('/api/v1/register/company', [
-            'username' => 'empresa1',
-            'email' => 'empresa1@example.com',
-            'password' => 'Password123',
-            'password_confirmation' => 'Password123',
-            'name' => 'Empresa Uno',
-            'nit' => '0614-010190-101-0',
-            'address' => 'San Salvador',
-            'phone' => '2222-3333',
-        ])
-            ->assertCreated()
-            ->assertJsonPath('data.role', UserRole::Company->value)
-            ->assertJsonPath('data.company.status', CompanyStatus::Pending->value);
+            ->assertJsonValidationErrors(['username', 'email']);
     }
 
     public function test_login_rejects_invalid_credentials(): void
@@ -92,66 +67,79 @@ class AuthApiTest extends TestCase
             'password' => 'Password123',
         ]);
 
-        $this->postJson('/api/v1/login', [
-            'login' => 'cliente2',
+        $this->postJson('/api/v1/auth/login', [
+            'identifier' => 'cliente2',
             'password' => 'wrong-password',
         ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['login']);
+            ->assertJsonValidationErrors(['identifier']);
     }
 
     public function test_login_is_rate_limited(): void
     {
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->postJson('/api/v1/login', [
-                'login' => 'missing@example.com',
+            $this->postJson('/api/v1/auth/login', [
+                'identifier' => 'missing@example.com',
                 'password' => 'wrong-password',
             ])->assertUnprocessable();
         }
 
-        $this->postJson('/api/v1/login', [
-            'login' => 'missing@example.com',
+        $this->postJson('/api/v1/auth/login', [
+            'identifier' => 'missing@example.com',
             'password' => 'wrong-password',
         ])->assertTooManyRequests();
     }
 
-    public function test_authenticated_user_can_logout(): void
+    public function test_authenticated_user_can_get_profile_and_logout(): void
     {
         $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $this->actingAs($user, 'jwt');
 
-        $this->postJson('/api/v1/logout')
+        $this->postJson('/api/v1/auth/profile')
             ->assertOk()
-            ->assertJsonPath('message', 'Sesion cerrada correctamente.');
+            ->assertJsonPath('data.id', $user->id);
+
+        $this->postJson('/api/v1/auth/logout')
+            ->assertOk()
+            ->assertJsonPath('data.message', 'Logged out successfully');
     }
 
-    public function test_password_can_be_reset_for_any_user_role(): void
+    public function test_password_can_be_reset_with_token_only_payload(): void
     {
-        $user = User::factory()->company()->create([
+        $user = User::factory()->create([
             'email' => 'empresa-reset@example.com',
-            'password' => 'Password123',
+            'password' => 'Password123!',
         ]);
         $token = Password::createToken($user);
 
-        $this->postJson('/api/v1/password/reset', [
-            'email' => 'empresa-reset@example.com',
+        $this->postJson('/api/v1/auth/forgot-password/verify-token', [
             'token' => $token,
-            'password' => 'NewPassword123',
-            'password_confirmation' => 'NewPassword123',
         ])->assertOk();
 
-        $this->postJson('/api/v1/login', [
-            'login' => 'empresa-reset@example.com',
-            'password' => 'NewPassword123',
+        $this->postJson('/api/v1/auth/forgot-password/reset-password', [
+            'token' => $token,
+            'password' => 'NewPassword123!',
+        ])->assertOk();
+
+        $this->postJson('/api/v1/auth/login', [
+            'identifier' => 'empresa-reset@example.com',
+            'password' => 'NewPassword123!',
         ])->assertOk();
     }
 
     public function test_forgot_password_returns_generic_response(): void
     {
-        $this->postJson('/api/v1/password/forgot', [
+        $this->postJson('/api/v1/auth/forgot-password/request-token', [
             'email' => 'missing@example.com',
         ])
-            ->assertAccepted()
-            ->assertJsonPath('message', 'Si el correo existe, se enviaran instrucciones para restablecer la contrasena.');
+            ->assertOk()
+            ->assertJsonPath('data.message', 'If a user with that email exists, a reset token has been sent.');
+    }
+
+    public function test_healthcheck_returns_ok_status(): void
+    {
+        $this->getJson('/api/health')
+            ->assertOk()
+            ->assertExactJson(['status' => 'ok']);
     }
 }

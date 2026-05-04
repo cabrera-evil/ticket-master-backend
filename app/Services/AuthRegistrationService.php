@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\CompanyStatus;
+use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Role;
 use App\Models\User;
@@ -66,6 +67,18 @@ class AuthRegistrationService
             'email' => $data['email'],
             'password' => $data['password'],
             'role_id' => Role::where('name', 'admin')->value('id'),
+            'status' => UserStatus::Active,
+        ]);
+    }
+
+    public function registerPortfolioUser(array $data): User
+    {
+        return User::query()->create([
+            'name' => $data['firstName'].' '.$data['lastName'],
+            'username' => $data['username'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role_id' => Role::where('name', UserRole::Client->value)->value('id'),
             'status' => UserStatus::Active,
         ]);
     }
