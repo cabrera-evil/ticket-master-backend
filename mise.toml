@@ -3,7 +3,6 @@ php = "https://github.com/verzly/mise-php"
 
 [tools]
 php = "8.5.5"
-composer = "latest"
 
 [env]
 APP_ENV = "local"
