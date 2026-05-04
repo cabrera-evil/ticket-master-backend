@@ -152,6 +152,9 @@ This project uses Scramble to generate OpenAPI 3.1 docs from code (routes, `Form
 
 - Documentation UI route: `/api/docs`
 - OpenAPI JSON route: `/api/docs.json`
+- Scramble UI theme default: `dark` (configured in `config/scramble.php`)
+
+You can change the theme by setting `scramble.ui.theme` to `light`, `dark`, or `system`.
 
 Export JSON to a file:
 

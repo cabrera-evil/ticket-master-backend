@@ -29,7 +29,7 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'Documentacion OpenAPI generada para La Cuponera SV Backend.',
+        'description' => 'Referencia oficial de endpoints, esquemas y autenticacion para integrar con La Cuponera SV Backend.',
     ],
 
     /*
@@ -39,12 +39,12 @@ return [
         /*
          * Define the title of the documentation's website. App name is used when this config is `null`.
          */
-        'title' => 'La Cuponera SV API Docs',
+        'title' => 'La Cuponera SV Backend API',
 
         /*
          * Define the theme of the documentation. Available options are `light`, `dark`, and `system`.
          */
-        'theme' => 'light',
+        'theme' => 'dark',
 
         /*
          * Hide the `Try It` feature. Enabled by default.

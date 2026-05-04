@@ -94,6 +94,9 @@ La documentacion se genera automaticamente con Scramble (OpenAPI 3.1):
 - UI interactiva: `http://localhost:8080/api/docs`
 - OpenAPI JSON: `http://localhost:8080/api/docs.json`
 
+La UI de Scramble esta configurada en modo oscuro por defecto (`config/scramble.php`, `ui.theme = dark`).
+Si desea cambiarlo, use `light`, `dark` o `system` en la misma configuracion.
+
 Export manual del contrato a archivo:
 
 ```bash
