@@ -12,7 +12,7 @@ class RegisterCompanyRequest extends FormRequest
         return [
             'username' => ['required', 'string', 'alpha_dash', 'max:50', 'unique:users,username'],
             'email' => ['required', 'email:rfc', 'max:255', 'unique:users,email', 'unique:companies,email'],
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
+            'password' => ['required', Password::min(8)->letters()->mixedCase()->numbers()->symbols()],
             'name' => ['required', 'string', 'max:150'],
             'nit' => ['required', 'string', 'max:30', 'unique:companies,nit'],
             'address' => ['required', 'string', 'max:255'],

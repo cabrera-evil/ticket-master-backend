@@ -6,6 +6,7 @@ use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterCompanyRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\VerifyResetTokenRequest;
@@ -32,6 +33,20 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = $this->registrationService->registerPortfolioUser($request->validated());
+        $tokens = $this->jwtService->generateTokenPair($user->id);
+
+        $response = response()->json([
+            'data' => array_merge($tokens, ['user' => new UserResource($user->loadMissing(['role', 'client', 'company']))]),
+        ], Response::HTTP_CREATED);
+
+        $this->jwtService->attachCookies($tokens, $response);
+
+        return $response;
+    }
+
+    public function registerCompany(RegisterCompanyRequest $request): JsonResponse
+    {
+        $user = $this->registrationService->registerCompany($request->validated());
         $tokens = $this->jwtService->generateTokenPair($user->id);
 
         $response = response()->json([

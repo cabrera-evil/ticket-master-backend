@@ -14,6 +14,8 @@ Route::prefix('v1')->group(function (): void {
     Route::prefix('auth')->group(function (): void {
         Route::post('/register', [AuthController::class, 'register'])
             ->middleware('throttle:registration');
+        Route::post('/register-company', [AuthController::class, 'registerCompany'])
+            ->middleware('throttle:registration');
         Route::post('/login', [AuthController::class, 'login'])
             ->middleware('throttle:login');
         Route::post('/refresh-token', [AuthController::class, 'refreshToken'])

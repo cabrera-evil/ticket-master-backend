@@ -59,6 +59,35 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['username', 'email']);
     }
 
+    public function test_company_can_register_as_pending(): void
+    {
+        $this->postJson('/api/v1/auth/register-company', [
+            'username' => 'empresa1',
+            'email' => 'empresa1@example.com',
+            'password' => 'Password123!',
+            'name' => 'Empresa Uno',
+            'nit' => '0614-010190-101-0',
+            'address' => 'San Salvador',
+            'phone' => '2222-3333',
+        ])
+            ->assertCreated()
+            ->assertJsonStructure(['data' => ['jwt', 'refreshToken', 'user']])
+            ->assertJsonPath('data.user.role', 'company')
+            ->assertJsonPath('data.user.company.status', 'pending');
+    }
+
+    public function test_company_register_validates_required_business_fields(): void
+    {
+        $this->postJson('/api/v1/auth/register-company', [
+            'username' => 'empresa2',
+            'email' => 'empresa2@example.com',
+            'password' => 'Password123!',
+            'name' => 'Empresa Dos',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['nit', 'address', 'phone']);
+    }
+
     public function test_login_rejects_invalid_credentials(): void
     {
         User::factory()->create([
@@ -138,7 +167,7 @@ class AuthApiTest extends TestCase
 
     public function test_healthcheck_returns_ok_status(): void
     {
-        $this->getJson('/api/health')
+        $this->getJson('/api/v1/health')
             ->assertOk()
             ->assertExactJson(['status' => 'ok']);
     }
