@@ -19,7 +19,7 @@ class AuthRegistrationService
                 'username' => $data['username'],
                 'email' => $data['email'],
                 'password' => $data['password'],
-                'role_id' => Role::where('name', 'client')->value('id'),
+                'role_id' => Role::where('name', UserRole::User->value)->value('id'),
                 'status' => UserStatus::Active,
             ]);
 
@@ -42,7 +42,7 @@ class AuthRegistrationService
                 'username' => $data['username'],
                 'email' => $data['email'],
                 'password' => $data['password'],
-                'role_id' => Role::where('name', 'company')->value('id'),
+                'role_id' => Role::where('name', UserRole::Company->value)->value('id'),
                 'status' => UserStatus::Active,
             ]);
 
@@ -66,7 +66,7 @@ class AuthRegistrationService
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'role_id' => Role::where('name', 'admin')->value('id'),
+            'role_id' => Role::where('name', UserRole::Admin->value)->value('id'),
             'status' => UserStatus::Active,
         ]);
     }
@@ -78,7 +78,7 @@ class AuthRegistrationService
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'role_id' => Role::where('name', UserRole::Client->value)->value('id'),
+            'role_id' => Role::where('name', UserRole::User->value)->value('id'),
             'status' => UserStatus::Active,
         ]);
     }

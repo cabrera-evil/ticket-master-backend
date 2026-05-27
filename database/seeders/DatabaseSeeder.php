@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Role;
 use App\Models\User;
@@ -14,7 +15,7 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        foreach (['admin', 'company', 'client'] as $name) {
+        foreach ([UserRole::Admin->value, UserRole::Company->value, UserRole::User->value] as $name) {
             Role::firstOrCreate(['name' => $name]);
         }
 
@@ -24,7 +25,7 @@ class DatabaseSeeder extends Seeder
             'name' => env('ADMIN_NAME', 'Administrador La Cuponera SV'),
             'username' => env('ADMIN_USERNAME', 'admin'),
             'password' => env('ADMIN_PASSWORD', 'Password123'),
-            'role_id' => Role::where('name', 'admin')->value('id'),
+            'role_id' => Role::where('name', UserRole::Admin->value)->value('id'),
             'status' => UserStatus::Active,
         ]);
     }

@@ -34,7 +34,7 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:jwt')->group(function (): void {
-        Route::middleware('role:admin')->prefix('admin')->group(function (): void {
+        Route::middleware('role:ADMIN')->prefix('admin')->group(function (): void {
             Route::post('/users', [AdminUserController::class, 'store']);
             Route::get('/companies/pending', [AdminCompanyController::class, 'pending']);
             Route::put('/companies/{company}/approve', [AdminCompanyController::class, 'approve']);

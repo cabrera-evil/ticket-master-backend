@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +39,7 @@ class AuthApiTest extends TestCase
 
     public function test_register_validates_required_fields_and_uniqueness(): void
     {
-        $roleId = Role::query()->where('name', 'client')->value('id');
+        $roleId = Role::query()->where('name', UserRole::User->value)->value('id');
         User::query()->create([
             'name' => 'Duplicado Usuario',
             'username' => 'duplicado',
@@ -72,7 +73,7 @@ class AuthApiTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonStructure(['data' => ['jwt', 'refreshToken', 'user']])
-            ->assertJsonPath('data.user.role', 'company')
+            ->assertJsonPath('data.user.role', UserRole::Company->value)
             ->assertJsonPath('data.user.company.status', 'pending');
     }
 
