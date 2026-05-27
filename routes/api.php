@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AdminCompanyController;
 use App\Http\Controllers\Api\V1\AdminUserController;
+use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\HealthController;
 use Illuminate\Support\Facades\Route;
@@ -35,8 +36,10 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware('auth:jwt')->group(function (): void {
         Route::middleware('role:ADMIN')->prefix('admin')->group(function (): void {
+            Route::get('/users', [AdminUserController::class, 'index']);
             Route::post('/users', [AdminUserController::class, 'store']);
             Route::get('/companies/pending', [AdminCompanyController::class, 'pending']);
+            Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
             Route::put('/companies/{company}/approve', [AdminCompanyController::class, 'approve']);
             Route::put('/companies/{company}/reject', [AdminCompanyController::class, 'reject']);
         });
