@@ -16,6 +16,7 @@ Route::prefix('v1')->group(function (): void {
 
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/offers/featured', [OfferController::class, 'featured']);
+    Route::get('/offers/search', [OfferController::class, 'search']);
 
     Route::prefix('auth')->group(function (): void {
         Route::post('/register', [AuthController::class, 'register'])

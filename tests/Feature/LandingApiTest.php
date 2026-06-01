@@ -66,6 +66,36 @@ class LandingApiTest extends TestCase
             ->assertJsonPath('data.0.category.slug', 'restaurantes');
     }
 
+    public function test_offers_search_can_be_filtered_by_query(): void
+    {
+        $restaurant = Category::query()->create([
+            'name' => 'Restaurantes',
+            'slug' => 'restaurantes',
+            'sort_order' => 1,
+        ]);
+        $tech = Category::query()->create([
+            'name' => 'Tecnologia',
+            'slug' => 'tecnologia',
+            'sort_order' => 2,
+        ]);
+        $company = $this->createCompany('search@example.com', CompanyStatus::Approved);
+
+        $this->createOffer($company, $restaurant, [
+            'title' => 'Menu Gourmet Doble',
+            'description' => 'Hamburguesa con papas.',
+        ]);
+        $matchingOffer = $this->createOffer($company, $tech, [
+            'title' => 'Mantenimiento Preventivo',
+            'description' => 'Limpieza profesional para laptop.',
+            'is_featured' => false,
+        ]);
+
+        $this->getJson('/api/v1/offers/search?q=laptop')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $matchingOffer->id);
+    }
+
     private function createCompany(string $email, CompanyStatus $status): Company
     {
         $role = Role::query()->firstOrCreate(['name' => UserRole::Company->value]);
