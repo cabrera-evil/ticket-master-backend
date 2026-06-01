@@ -34,11 +34,6 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function client(): HasOne
-    {
-        return $this->hasOne(Client::class);
-    }
-
     public function company(): HasOne
     {
         return $this->hasOne(Company::class);
@@ -47,6 +42,16 @@ class User extends Authenticatable
     public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function cards(): HasMany
+    {
+        return $this->hasMany(Card::class);
+    }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
     }
 
     protected function casts(): array

@@ -32,11 +32,11 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = $this->registrationService->registerPortfolioUser($request->validated());
+        $user = $this->registrationService->registerUser($request->validated());
         $tokens = $this->jwtService->generateTokenPair($user->id);
 
         $response = response()->json([
-            'data' => array_merge($tokens, ['user' => new UserResource($user->loadMissing(['role', 'client', 'company']))]),
+            'data' => array_merge($tokens, ['user' => new UserResource($user->loadMissing(['role', 'company']))]),
         ], Response::HTTP_CREATED);
 
         $this->jwtService->attachCookies($tokens, $response);
@@ -50,7 +50,7 @@ class AuthController extends Controller
         $tokens = $this->jwtService->generateTokenPair($user->id);
 
         $response = response()->json([
-            'data' => array_merge($tokens, ['user' => new UserResource($user->loadMissing(['role', 'client', 'company']))]),
+            'data' => array_merge($tokens, ['user' => new UserResource($user->loadMissing(['role', 'company']))]),
         ], Response::HTTP_CREATED);
 
         $this->jwtService->attachCookies($tokens, $response);
@@ -80,7 +80,7 @@ class AuthController extends Controller
 
         $response = response()->json([
             'data' => array_merge($tokens, [
-                'user' => new UserResource($user->loadMissing(['role', 'client', 'company'])),
+                'user' => new UserResource($user->loadMissing(['role', 'company'])),
             ]),
         ]);
 
@@ -109,7 +109,7 @@ class AuthController extends Controller
         $tokens = $this->jwtService->generateTokenPair($payload->sub);
         $response = response()->json([
             'data' => array_merge($tokens, [
-                'user' => new UserResource(User::query()->findOrFail($payload->sub)->loadMissing(['role', 'client', 'company'])),
+                'user' => new UserResource(User::query()->findOrFail($payload->sub)->loadMissing(['role', 'company'])),
             ]),
         ]);
         $this->jwtService->attachCookies($tokens, $response);
@@ -133,7 +133,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'data' => new UserResource($user->loadMissing(['role', 'client', 'company'])),
+            'data' => new UserResource($user->loadMissing(['role', 'company'])),
         ]);
     }
 

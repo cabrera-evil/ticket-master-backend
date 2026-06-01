@@ -4,10 +4,13 @@ use App\Http\Controllers\Api\V1\AdminCompanyController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CardController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\OfferController;
+use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\PurchaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -48,6 +51,10 @@ Route::prefix('v1')->group(function (): void {
         Route::post('/cart/items', [CartController::class, 'store']);
         Route::patch('/cart/items/{cartItem}', [CartController::class, 'update']);
         Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy']);
+
+        Route::get('/cards', [CardController::class, 'index']);
+        Route::post('/orders', [OrderController::class, 'store']);
+        Route::get('/purchases', [PurchaseController::class, 'index']);
 
         Route::middleware('role:ADMIN')->prefix('admin')->group(function (): void {
             Route::get('/users', [AdminUserController::class, 'index']);

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Purchase extends Model
 {
     protected $fillable = [
-        'client_id',
+        'user_id',
         'status',
         'total_amount',
         'purchased_at',
@@ -26,9 +26,9 @@ class Purchase extends Model
         ];
     }
 
-    public function client(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(User::class);
     }
 
     public function details(): HasMany

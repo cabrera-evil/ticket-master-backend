@@ -11,27 +11,16 @@ use Illuminate\Support\Facades\DB;
 
 class AuthRegistrationService
 {
-    public function registerClient(array $data): User
+    public function registerUser(array $data): User
     {
-        return DB::transaction(function () use ($data): User {
-            $user = User::query()->create([
-                'name' => $data['first_name'].' '.$data['last_name'],
-                'username' => $data['username'],
-                'email' => $data['email'],
-                'password' => $data['password'],
-                'role_id' => Role::where('name', UserRole::User->value)->value('id'),
-                'status' => UserStatus::Active,
-            ]);
-
-            $user->client()->create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'dui' => $data['dui'],
-                'birth_date' => $data['birth_date'],
-            ]);
-
-            return $user->load('client');
-        });
+        return User::query()->create([
+            'name' => $data['firstName'].' '.$data['lastName'],
+            'username' => $data['username'],
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role_id' => Role::where('name', UserRole::User->value)->value('id'),
+            'status' => UserStatus::Active,
+        ]);
     }
 
     public function registerCompany(array $data): User
@@ -67,18 +56,6 @@ class AuthRegistrationService
             'email' => $data['email'],
             'password' => $data['password'],
             'role_id' => Role::where('name', UserRole::Admin->value)->value('id'),
-            'status' => UserStatus::Active,
-        ]);
-    }
-
-    public function registerPortfolioUser(array $data): User
-    {
-        return User::query()->create([
-            'name' => $data['firstName'].' '.$data['lastName'],
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'role_id' => Role::where('name', UserRole::User->value)->value('id'),
             'status' => UserStatus::Active,
         ]);
     }

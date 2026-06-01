@@ -11,8 +11,7 @@ class PaymentSimulation extends Model
 
     protected $fillable = [
         'purchase_id',
-        'card_last_four',
-        'card_expiry',
+        'card_id',
         'simulated_at',
     ];
 
@@ -26,5 +25,10 @@ class PaymentSimulation extends Model
     public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
+    }
+
+    public function card(): BelongsTo
+    {
+        return $this->belongsTo(Card::class);
     }
 }
