@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AdminCompanyController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\OfferController;
@@ -15,8 +16,10 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/offers', [OfferController::class, 'index']);
     Route::get('/offers/featured', [OfferController::class, 'featured']);
     Route::get('/offers/search', [OfferController::class, 'search']);
+    Route::get('/offers/{offer}', [OfferController::class, 'show']);
 
     Route::prefix('auth')->group(function (): void {
         Route::post('/register', [AuthController::class, 'register'])
@@ -41,6 +44,11 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware('auth:jwt')->group(function (): void {
+        Route::get('/cart', [CartController::class, 'index']);
+        Route::post('/cart/items', [CartController::class, 'store']);
+        Route::patch('/cart/items/{cartItem}', [CartController::class, 'update']);
+        Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy']);
+
         Route::middleware('role:ADMIN')->prefix('admin')->group(function (): void {
             Route::get('/users', [AdminUserController::class, 'index']);
             Route::post('/users', [AdminUserController::class, 'store']);

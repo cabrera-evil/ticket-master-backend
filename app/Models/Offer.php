@@ -54,4 +54,9 @@ class Offer extends Model
     {
         return $this->hasMany(PurchaseDetail::class);
     }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }

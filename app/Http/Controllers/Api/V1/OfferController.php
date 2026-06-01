@@ -13,6 +13,29 @@ use Illuminate\Http\Request;
 
 class OfferController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $limit = (int) $request->query('limit', 0);
+        $categoryId = $request->query('category_id');
+
+        $query = $this->availableOffersQuery()
+            ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
+            ->orderByDesc('is_featured')
+            ->orderBy('featured_sort_order')
+            ->orderByDesc('created_at');
+
+        if ($limit > 0) {
+            $offers = $query->limit($limit)->get();
+
+            return $this->apiResponse('Ofertas obtenidas correctamente.', FeaturedOfferResource::collection($offers));
+        }
+
+        $perPage = min((int) $request->query('per_page', 15), 50);
+        $paginator = $query->paginate($perPage);
+
+        return $this->paginatedResponse('Ofertas obtenidas correctamente.', $paginator, FeaturedOfferResource::collection($paginator));
+    }
+
     public function featured(): JsonResponse
     {
         $offers = $this->availableOffersQuery()
@@ -51,6 +74,15 @@ class OfferController extends Controller
             ->get();
 
         return $this->apiResponse('Ofertas obtenidas correctamente.', FeaturedOfferResource::collection($offers));
+    }
+
+    public function show(Offer $offer): JsonResponse
+    {
+        $offer = $this->availableOffersQuery()
+            ->whereKey($offer->id)
+            ->firstOrFail();
+
+        return $this->apiResponse('Oferta obtenida correctamente.', new FeaturedOfferResource($offer));
     }
 
     private function availableOffersQuery(): Builder

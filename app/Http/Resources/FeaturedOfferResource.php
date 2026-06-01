@@ -24,7 +24,18 @@ class FeaturedOfferResource extends JsonResource
             'regular_price' => $regularPrice,
             'offer_price' => $offerPrice,
             'image_url' => $this->image_url,
+            'starts_at' => $this->starts_at?->toISOString(),
+            'ends_at' => $this->ends_at?->toISOString(),
+            'redeemable_until' => $this->redeemable_until?->toISOString(),
+            'coupon_limit' => $this->coupon_limit,
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'merchant_details' => $this->whenLoaded('company', fn (): array => [
+                'id' => $this->company->id,
+                'name' => $this->company->name,
+                'address' => $this->company->address,
+                'phone' => $this->company->phone,
+                'email' => $this->company->email,
+            ]),
         ];
     }
 }

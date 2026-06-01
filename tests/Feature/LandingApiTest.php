@@ -96,6 +96,27 @@ class LandingApiTest extends TestCase
             ->assertJsonPath('data.0.id', $matchingOffer->id);
     }
 
+    public function test_offer_detail_returns_available_offer(): void
+    {
+        $category = Category::query()->create([
+            'name' => 'Salud',
+            'slug' => 'salud',
+            'sort_order' => 1,
+        ]);
+        $company = $this->createCompany('detail@example.com', CompanyStatus::Approved);
+        $offer = $this->createOffer($company, $category, [
+            'title' => 'Masaje Relajante',
+            'regular_price' => 60,
+            'offer_price' => 45,
+        ]);
+
+        $this->getJson("/api/v1/offers/{$offer->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $offer->id)
+            ->assertJsonPath('data.merchant_details.phone', '2222-3333')
+            ->assertJsonPath('data.category.slug', 'salud');
+    }
+
     private function createCompany(string $email, CompanyStatus $status): Company
     {
         $role = Role::query()->firstOrCreate(['name' => UserRole::Company->value]);
