@@ -15,7 +15,7 @@ abstract class Controller
             $body['data'] = $data;
         }
 
-        return response()->json($body, $statusCode);
+        return response()->json($body, $statusCode, [], JSON_UNESCAPED_SLASHES);
     }
 
     protected function paginatedResponse(string $message, LengthAwarePaginator $paginator, mixed $data): JsonResponse
@@ -30,6 +30,6 @@ abstract class Controller
                 'total' => $paginator->total(),
                 'pageCount' => $paginator->lastPage(),
             ],
-        ]);
+        ], 200, [], JSON_UNESCAPED_SLASHES);
     }
 }

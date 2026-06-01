@@ -76,4 +76,39 @@ class AdminDashboardController extends Controller
             'chartData' => $chartData,
         ]);
     }
+
+    public function reports(): JsonResponse
+    {
+        $reportData = Company::query()
+            ->where('status', CompanyStatus::Approved)
+            ->with(['offers' => function ($query) {
+                $query->withCount(['purchaseDetails as coupons_sold' => function ($q) {
+                    $q->whereHas('purchase', function ($p) {
+                        $p->where('status', PurchaseStatus::Completed);
+                    });
+                }]);
+            }])
+            ->get()
+            ->map(function ($company) {
+                $totalSales = $company->offers->sum(function ($offer) {
+                    return $offer->purchaseDetails
+                        ->where('purchase.status', PurchaseStatus::Completed)
+                        ->sum('unit_price');
+                });
+                
+                $commissionRate = (float) $company->commission_percentage;
+                $totalEarnings = $totalSales * ($commissionRate / 100);
+                $couponsSold = $company->offers->sum('coupons_sold');
+
+                return [
+                    'companyId' => $company->id,
+                    'companyName' => $company->name,
+                    'couponsSold' => $couponsSold,
+                    'totalSales' => $totalSales,
+                    'totalEarnings' => $totalEarnings,
+                ];
+            });
+
+        return $this->apiResponse('Reportes obtenidos correctamente.', $reportData);
+    }
 }

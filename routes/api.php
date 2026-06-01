@@ -1,16 +1,21 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AdminCompanyController;
-use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
+use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\OfferController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::prefix('health')->controller(HealthController::class)->group(function (): void {
         Route::get('/', 'check');
     });
+
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/offers/featured', [OfferController::class, 'featured']);
 
     Route::prefix('auth')->group(function (): void {
         Route::post('/register', [AuthController::class, 'register'])
@@ -40,6 +45,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/users', [AdminUserController::class, 'store']);
             Route::get('/companies/pending', [AdminCompanyController::class, 'pending']);
             Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
+            Route::get('/dashboard/reports', [AdminDashboardController::class, 'reports']);
             Route::put('/companies/{company}/approve', [AdminCompanyController::class, 'approve']);
             Route::put('/companies/{company}/reject', [AdminCompanyController::class, 'reject']);
         });

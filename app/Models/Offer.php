@@ -11,6 +11,7 @@ class Offer extends Model
 {
     protected $fillable = [
         'company_id',
+        'category_id',
         'title',
         'regular_price',
         'offer_price',
@@ -19,6 +20,9 @@ class Offer extends Model
         'redeemable_until',
         'coupon_limit',
         'description',
+        'image_url',
+        'is_featured',
+        'featured_sort_order',
         'status',
     ];
 
@@ -30,6 +34,8 @@ class Offer extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'redeemable_until' => 'datetime',
+            'is_featured' => 'boolean',
+            'featured_sort_order' => 'integer',
             'status' => OfferStatus::class,
         ];
     }
@@ -37,6 +43,11 @@ class Offer extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function purchaseDetails(): HasMany

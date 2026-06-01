@@ -1,6 +1,9 @@
 ARG PHP_VERSION=8.4
 ARG COMPOSER_VERSION=2
 
+# BuildKit does not support variable expansion directly in COPY --from.
+FROM composer:${COMPOSER_VERSION} AS composer-bin
+
 # ==============================================================================
 # Base stage - System packages and PHP extensions
 # ==============================================================================
@@ -25,7 +28,7 @@ RUN apk add --no-cache \
     pdo_pgsql \
     zip
 
-COPY --from=composer:${COMPOSER_VERSION} /usr/bin/composer /usr/bin/composer
+COPY --from=composer-bin /usr/bin/composer /usr/bin/composer
 
 # ==============================================================================
 # Dependencies stage - Install all Composer packages (including dev)
