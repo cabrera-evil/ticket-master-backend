@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CartItemResource;
 use App\Models\CartItem;
 use App\Models\Offer;
+use App\Models\PurchaseDetail;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,7 +51,22 @@ class CartController extends Controller
             'offer_id' => $offer->id,
         ]);
 
-        $item->quantity = min(10, ($item->exists ? $item->quantity : 0) + ($validated['quantity'] ?? 1));
+        $purchased = PurchaseDetail::query()
+            ->whereHas('purchase', fn ($q) => $q->where('user_id', $user->id))
+            ->where('offer_id', $offer->id)
+            ->count();
+
+        $remaining = max(0, 5 - $purchased);
+
+        if ($remaining === 0) {
+            return response()->json([
+                'statusCode' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                'message' => 'Ya alcanzaste el límite de 5 cupones para esta oferta.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $current = $item->exists ? $item->quantity : 0;
+        $item->quantity = min($remaining, $current + ($validated['quantity'] ?? 1));
         $item->save();
         $item->load(['offer.company', 'offer.category']);
 
@@ -63,8 +79,22 @@ class CartController extends Controller
         $this->authorizeCartItem($cartItem, $user);
 
         $validated = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:10'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:5'],
         ]);
+
+        $purchased = PurchaseDetail::query()
+            ->whereHas('purchase', fn ($q) => $q->where('user_id', $user->id))
+            ->where('offer_id', $cartItem->offer_id)
+            ->count();
+
+        $remaining = max(0, 5 - $purchased);
+
+        if ($validated['quantity'] > $remaining) {
+            return response()->json([
+                'statusCode' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                'message' => "Solo puedes comprar {$remaining} cupón(es) más de esta oferta.",
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         $cartItem->update(['quantity' => $validated['quantity']]);
         $cartItem->load(['offer.company', 'offer.category']);

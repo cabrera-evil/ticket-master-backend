@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\CompanyStatus;
+use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
@@ -74,6 +76,22 @@ class AuthController extends Controller
 
         if ($user->status !== UserStatus::Active) {
             return response()->json(['message' => 'La cuenta no esta activa.'], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($user->role?->name === UserRole::Company->value) {
+            $companyStatus = $user->company?->status;
+            if ($companyStatus === null || $companyStatus === CompanyStatus::Pending) {
+                return response()->json(
+                    ['message' => 'Tu empresa está pendiente de aprobación. Serás notificado cuando sea revisada.'],
+                    Response::HTTP_FORBIDDEN
+                );
+            }
+            if ($companyStatus === CompanyStatus::Rejected) {
+                return response()->json(
+                    ['message' => 'Tu solicitud de empresa fue rechazada. Contacta al administrador para más información.'],
+                    Response::HTTP_FORBIDDEN
+                );
+            }
         }
 
         $tokens = $this->jwtService->generateTokenPair($user->id);

@@ -17,7 +17,8 @@ class AdminUserController extends Controller
     public function index(): JsonResponse
     {
         $users = User::query()
-            ->with(['role', 'client', 'company'])
+            ->with(['role', 'company'])
+            ->when(request('role'), fn ($q, $role) => $q->whereHas('role', fn ($q) => $q->where('name', $role)))
             ->latest()
             ->paginate(15);
 

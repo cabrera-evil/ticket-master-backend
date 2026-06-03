@@ -71,6 +71,20 @@ class OrderController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        foreach ($cartItems as $item) {
+            $purchased = PurchaseDetail::query()
+                ->whereHas('purchase', fn ($q) => $q->where('user_id', $user->id))
+                ->where('offer_id', $item->offer_id)
+                ->count();
+
+            if ($purchased + $item->quantity > 5) {
+                return response()->json([
+                    'statusCode' => Response::HTTP_UNPROCESSABLE_ENTITY,
+                    'message' => "Superaste el límite de 5 cupones para \"{$item->offer->title}\".",
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+        }
+
         $totalAmount = round(
             $cartItems->sum(fn (CartItem $item) => (float) $item->offer->offer_price * $item->quantity),
             2

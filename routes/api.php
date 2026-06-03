@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AdminCompanyController;
+use App\Http\Controllers\Api\V1\CompanyDashboardController;
+use App\Http\Controllers\Api\V1\CompanyOfferController;
 use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Controllers\Api\V1\AdminUserController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -55,6 +57,15 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/cards', [CardController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/purchases', [PurchaseController::class, 'index']);
+
+        Route::middleware('role:COMPANY')->prefix('company')->group(function (): void {
+            Route::get('/offers', [CompanyOfferController::class, 'index']);
+            Route::post('/offers', [CompanyOfferController::class, 'store']);
+            Route::put('/offers/{offer}', [CompanyOfferController::class, 'update']);
+            Route::delete('/offers/{offer}', [CompanyOfferController::class, 'destroy']);
+            Route::get('/dashboard/stats', [CompanyDashboardController::class, 'stats']);
+            Route::get('/customers', [CompanyDashboardController::class, 'customers']);
+        });
 
         Route::middleware('role:ADMIN')->prefix('admin')->group(function (): void {
             Route::get('/users', [AdminUserController::class, 'index']);
